@@ -10,33 +10,76 @@ import (
 )
 
 func TestGetPointsHandler(t *testing.T) {
-	receiptID := "12345"
-	pointStore[receiptID] = 100
 
-	request := httptest.NewRequest("GET", "/receipts/"+receiptID+"/points", nil)
-	recorder := httptest.NewRecorder()
-
-	// Inject Mock Vars
-	request = mux.SetURLVars(request, map[string]string{
-		"id": receiptID,
-	})
-
-	GetPoints(recorder, request)
-
-	// Check for OK status code
-	if recorder.Code != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d. %v", http.StatusOK, recorder.Code, recorder)
+	testCases := []struct {
+		description    string
+		requestPath    string
+		receiptID      string
+		expectedStatus int
+		expectedPoints int64
+		err            error
+	}{
+		{
+			description:    "Valid ID",
+			requestPath:    "/receipts/12345/points",
+			receiptID:      "12345",
+			expectedStatus: http.StatusOK,
+			expectedPoints: 100,
+		},
+		{
+			description:    "ID does not exist",
+			requestPath:    "/receipts/99999/points",
+			receiptID:      "99999",
+			expectedStatus: http.StatusNotFound,
+			expectedPoints: 0,
+		},
+		{
+			description:    "No ID provided",
+			requestPath:    "/receipts/points",
+			receiptID:      "",
+			expectedStatus: http.StatusNotFound,
+			expectedPoints: 0,
+		},
+		{
+			description:    "Invalud URL",
+			requestPath:    "/invalid",
+			receiptID:      "",
+			expectedStatus: http.StatusNotFound,
+			expectedPoints: 0,
+		},
 	}
 
-	// Extract points from json response
-	var response GetPointsResponse
-	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
-		t.Errorf("Error parsing response: %v", err)
-	}
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			if testCase.receiptID == "12345" {
+				pointStore[testCase.receiptID] = testCase.expectedPoints
+			}
 
-	// Compare expected point value to actual
-	want := int64(100)
-	if response.Points != want {
-		t.Errorf("Want %d, got %d", want, response.Points)
+			request := httptest.NewRequest("GET", testCase.requestPath, nil)
+			recorder := httptest.NewRecorder()
+
+			// Inject Mock Vars
+			request = mux.SetURLVars(request, map[string]string{
+				"id": testCase.receiptID,
+			})
+
+			GetPoints(recorder, request)
+
+			// Check for OK status code
+			if recorder.Code != testCase.expectedStatus {
+				t.Errorf("Expected status code %d, got %d", testCase.expectedStatus, recorder.Code)
+			}
+
+			// Extract points from json response
+			var response GetPointsResponse
+			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+				t.Errorf("Error parsing response: %v", err)
+			}
+
+			// Compare expected point value to actual
+			if response.Points != testCase.expectedPoints {
+				t.Errorf("Want %d, got %d", testCase.expectedPoints, response.Points)
+			}
+		})
 	}
 }

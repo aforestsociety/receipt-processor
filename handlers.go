@@ -9,6 +9,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 func ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 	// Parse JSON request into a Receipt struct
 	var receipt Receipt
@@ -85,7 +89,14 @@ func getPoints(id string) (int64, error) {
 		return points, nil
 	}
 
-	return 0, fmt.Errorf("no receipt found for ID %s", id)
+	// Create and Format error response as JSON
+	errResponse := ErrorResponse{
+		Error: fmt.Sprintf("no receipt found for ID %s", id),
+	}
+
+	errJSON, _ := json.Marshal(errResponse)
+
+	return 0, fmt.Errorf(string(errJSON))
 }
 
 func generateUniqueID() string {
