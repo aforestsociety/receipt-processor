@@ -259,6 +259,7 @@ func TestIsBetween2And4PM(t *testing.T) {
 		{"16:00", false}, // 4 PM
 		{"16:01", false}, // After
 		{"20:12", false}, // After
+		{"12345", false}, // Invalid
 	}
 
 	for _, testCase := range testCases {

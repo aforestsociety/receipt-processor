@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"receipt-processor/pkg/models"
 	"receipt-processor/pkg/utils"
@@ -75,9 +76,19 @@ func validateReceipt(receipt models.Receipt) models.ErrorResponse {
 	}
 	if receipt.PurchaseDate == "" {
 		validationErrors = append(validationErrors, errors.New("field 'purchaseDate' is required"))
+	} else {
+		_, err := time.Parse(time.DateOnly, receipt.PurchaseDate)
+		if err != nil {
+			validationErrors = append(validationErrors, errors.New("'purchaseDate' format is invalid, expected 'YYYY-MM-DD'"))
+		}
 	}
 	if receipt.PurchaseTime == "" {
 		validationErrors = append(validationErrors, errors.New("field 'purchaseTime' is required"))
+	} else {
+		_, err := time.Parse("15:04", receipt.PurchaseTime)
+		if err != nil {
+			validationErrors = append(validationErrors, errors.New("'purchaseTime' format is invalid, expected 'HH:MM'"))
+		}
 	}
 	if len(receipt.Items) == 0 {
 		validationErrors = append(validationErrors, errors.New("at least one item is required"))
