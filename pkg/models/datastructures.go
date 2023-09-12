@@ -1,4 +1,4 @@
-package main
+package models
 
 type Receipt struct {
 	Retailer     string `json:"retailer"`
@@ -21,4 +21,8 @@ type GetPointsResponse struct {
 	Points int64 `json:"points"`
 }
 
-var pointStore = make(map[string]int64)
+type ErrorResponse struct {
+	Errors []string `json:"errors"`
+}
+
+var PointStore = make(map[string]int64)

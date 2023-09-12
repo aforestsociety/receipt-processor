@@ -1,147 +1,23 @@
-package main
+package utils
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"strings"
+	"receipt-processor/pkg/models"
 	"testing"
-
-	"github.com/gorilla/mux"
 )
-
-func TestGetPointsHandler(t *testing.T) {
-	// Define slice of test cases
-	testCases := []struct {
-		description    string
-		requestPath    string
-		receiptID      string
-		expectedStatus int
-		expectedPoints int64
-	}{
-		{
-			description:    "Valid ID",
-			requestPath:    "/receipts/12345/points",
-			receiptID:      "12345",
-			expectedStatus: http.StatusOK,
-			expectedPoints: 100,
-		},
-		{
-			description:    "ID does not exist",
-			requestPath:    "/receipts/99999/points",
-			receiptID:      "99999",
-			expectedStatus: http.StatusNotFound,
-			expectedPoints: 0,
-		},
-		{
-			description:    "No ID provided",
-			requestPath:    "/receipts/points",
-			receiptID:      "",
-			expectedStatus: http.StatusNotFound,
-			expectedPoints: 0,
-		},
-		{
-			description:    "Invalud URL",
-			requestPath:    "/invalid",
-			receiptID:      "",
-			expectedStatus: http.StatusNotFound,
-			expectedPoints: 0,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.description, func(t *testing.T) {
-			if testCase.receiptID == "12345" {
-				pointStore[testCase.receiptID] = testCase.expectedPoints
-			}
-
-			request := httptest.NewRequest("GET", testCase.requestPath, nil)
-			recorder := httptest.NewRecorder()
-
-			// Inject Mock Vars
-			request = mux.SetURLVars(request, map[string]string{
-				"id": testCase.receiptID,
-			})
-
-			GetPoints(recorder, request)
-
-			// Check for expected status code
-			if recorder.Code != testCase.expectedStatus {
-				t.Errorf("Expected status code %d, got %d", testCase.expectedStatus, recorder.Code)
-			}
-
-			// Extract points from json response
-			var response GetPointsResponse
-			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
-				t.Errorf("Error parsing response: %v", err)
-			}
-
-			// Compare expected point value to actual
-			if response.Points != testCase.expectedPoints {
-				t.Errorf("Want %d, got %d", testCase.expectedPoints, response.Points)
-			}
-		})
-	}
-}
-
-func TestPostReceiptHandler(t *testing.T) {
-	// Define slice of test cases
-	testCases := []struct {
-		description    string
-		requestBody    string
-		expectedStatus int
-	}{
-		{
-			description:    "Valid Receipt",
-			requestBody:    `{"retailer": "Test Retailer", "purchaseDate": "2022-01-01", "purchaseTime": "13:01", "items": [{"shortDescription": "Test Item", "price": "9.99"}], "total": "9.99"}`,
-			expectedStatus: http.StatusOK,
-		},
-		{
-			description:    "Invalid JSON",
-			requestBody:    `invalid`,
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			description:    "Missing Retailer Field",
-			requestBody:    `{"purchaseDate": "2022-01-01", "purchaseTime": "13:01", "items": [{"shortDescription": "Test Item", "price": "9.99"}], "total": "9.99"}`,
-			expectedStatus: http.StatusBadRequest,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.description, func(t *testing.T) {
-			request := httptest.NewRequest("POST", "/receipts/process", strings.NewReader(testCase.requestBody))
-			recorder := httptest.NewRecorder()
-
-			ProcessReceipt(recorder, request)
-
-			// Check for expected status code
-			if recorder.Code != testCase.expectedStatus {
-				t.Errorf("Expected status code %d, got %d", testCase.expectedStatus, recorder.Code)
-			}
-
-			// Check for empty response body
-			responeBody := recorder.Body.String()
-			if len(responeBody) == 0 {
-				t.Error("Expected non empty response body, got empty")
-			}
-		})
-	}
-}
 
 func TestCalculatePoints(t *testing.T) {
 	testCases := []struct {
 		description    string
-		receipt        Receipt
+		receipt        models.Receipt
 		expectedPoints int64
 	}{
 		{
 			description: "Sample Receipt 1",
-			receipt: Receipt{
+			receipt: models.Receipt{
 				Retailer:     "Target",
 				PurchaseDate: "2022-01-02",
 				PurchaseTime: "11:11",
-				Items: []Item{
+				Items: []models.Item{
 					{ShortDescription: "Pepsi - 12-oz", Price: "1.25"},
 				},
 				Total: "1.25",
@@ -150,11 +26,11 @@ func TestCalculatePoints(t *testing.T) {
 		},
 		{
 			description: "Sample Receipt 2",
-			receipt: Receipt{
+			receipt: models.Receipt{
 				Retailer:     "Walgreens",
 				PurchaseDate: "2022-01-21",
 				PurchaseTime: "08:13",
-				Items: []Item{
+				Items: []models.Item{
 					{ShortDescription: "Pepsi - 12-oz", Price: "1.25"},
 					{ShortDescription: "Dasani", Price: "1.40"},
 				},
@@ -164,11 +40,11 @@ func TestCalculatePoints(t *testing.T) {
 		},
 		{
 			description: "Sample Receipt 3",
-			receipt: Receipt{
+			receipt: models.Receipt{
 				Retailer:     "Record Store",
 				PurchaseDate: "2022-01-22",
 				PurchaseTime: "15:42",
-				Items: []Item{
+				Items: []models.Item{
 					{ShortDescription: "Blonde - Frank Ocean", Price: "24.99"},
 					{ShortDescription: "Volcano - Jungle", Price: "17.99"},
 					{ShortDescription: "Derealised - Jadu Heart", Price: "18.50"},
@@ -181,11 +57,11 @@ func TestCalculatePoints(t *testing.T) {
 		},
 		{
 			description: "Sample Receipt 4",
-			receipt: Receipt{
+			receipt: models.Receipt{
 				Retailer:     "T's Candy",
 				PurchaseDate: "2022-01-09",
 				PurchaseTime: "16:00",
-				Items: []Item{
+				Items: []models.Item{
 					{ShortDescription: "Mambas", Price: "2.00"},
 					{ShortDescription: "Skittles", Price: "1.75"},
 					{ShortDescription: "Albanese Gummy Bears", Price: "3.25"},
@@ -198,7 +74,7 @@ func TestCalculatePoints(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			points := calculatePoints(testCase.receipt)
+			points, _ := CalculatePoints(testCase.receipt)
 
 			if points != testCase.expectedPoints {
 				t.Errorf("Expected points: %d, got %d", testCase.expectedPoints, points)
@@ -279,22 +155,22 @@ func TestIsMultipleOf25Cents(t *testing.T) {
 func TestNumItemsOnReceipt(t *testing.T) {
 	testCases := []struct {
 		description   string
-		items         []Item
+		items         []models.Item
 		expectedCount int
 	}{
 		{
 			description:   "No Items",
-			items:         []Item{},
+			items:         []models.Item{},
 			expectedCount: 0,
 		},
 		{
 			description:   "1 Item",
-			items:         []Item{{ShortDescription: "Item 1", Price: "1.23"}},
+			items:         []models.Item{{ShortDescription: "Item 1", Price: "1.23"}},
 			expectedCount: 1,
 		},
 		{
 			description: "5 Items",
-			items: []Item{
+			items: []models.Item{
 				{ShortDescription: "Item 1", Price: "1.23"},
 				{ShortDescription: "Item 2", Price: "1.23"},
 				{ShortDescription: "Item 3", Price: "1.23"},
@@ -304,7 +180,7 @@ func TestNumItemsOnReceipt(t *testing.T) {
 		},
 		{
 			description: "8 Items",
-			items: []Item{
+			items: []models.Item{
 				{ShortDescription: "Item 1", Price: "1.23"},
 				{ShortDescription: "Item 2", Price: "1.23"},
 				{ShortDescription: "Item 3", Price: "1.23"},

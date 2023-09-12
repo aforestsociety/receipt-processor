@@ -1,3 +1,86 @@
+# About
+This is a Go application for processing receipts and calculating reward points based on a given set of rules. 
+
+# Instructions for running the application
+
+## Prerequisites
+If you dont have Docker and Go installed on your system, download them from the following links
+
+https://www.docker.com/products/docker-desktop/
+
+https://go.dev/dl/
+
+## Building Docker Image
+
+1. Open a Terminal session and clone this repository to your a folder of your choosing using
+```bash
+git clone github.com/aforestsociety/receipt-processor.git
+```
+
+2. Navigate to the project directory
+```bash
+cd receipt-processor
+```
+
+3. If you'd like to view the test results, you can run them from this directory with the following command
+```bash
+go test ./...
+```
+
+3. Make sure you are at the same directory as the Dockerfile. The following command should display it
+```bash
+ls Dockerfile
+```
+
+3. Build the Docker image by running the following command (`dont forget the period!!`)
+```bash
+docker build -t receipt-processor .
+```
+
+4. Now that it's built, we can run the application with the following command
+```bash
+docker run -p 8080:8080 receipt-processor
+```
+
+5. The current Terminal session will spin up the application container and make it accesible at 
+```
+http://localhost:8080
+```
+
+6. Now you can send requests using an application like Postman or via command line with cURL. The endpoints are as follows:
+
+```
+POST -> http://localhost:8080/receipts/process
+GET  -> http://localhost:8080/receipts/{id}/points
+```
+
+  - If using Postman, import the Receipt-Processor Endpoints collection from the repo into Postman. Try sending the POST Request to add a receipt. Then you can retrieve the points via the GET request.
+
+  - If using cURL, send a request in the following format:
+
+    *POST*
+    ```bash
+    curl -X POST -H "Content-Type: application/json" -d '{ 
+      "retailer": "Sample Store", 
+      "purchaseDate": "2022-09-09", 
+      "purchaseTime": "14:30", 
+      "items": [
+        {"shortDescription": "Item 1", "price": "10.00"}, 
+        {"shortDescription": "Item 2", "price": "5.00"}
+        ],
+        "total": "15.00"
+        }' http://localhost:8080/receipts/process
+    ```
+
+    *GET*
+    ```bash
+    curl http://localhost:8080/receipts/{id}/points
+    ```
+
+7. To stop the container, press `Ctrl+C` in the terminal where you ran Docker from
+
+---
+# Original README 
 # Receipt Processor
 
 Build a webservice that fulfils the documented API. The API is described below. A formal definition is provided 

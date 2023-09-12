@@ -1,0 +1,72 @@
+{
+	"info": {
+		"_postman_id": "15450e7a-6be0-460f-bfdf-74a36bea62a8",
+		"name": "Receipt-Processor Endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29637052"
+	},
+	"item": [
+		{
+			"name": "ProcessReceipt",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"retailer\": \"Walgreens\",\r\n    \"purchaseDate\": \"2022-01-02\",\r\n    \"purchaseTime\": \"08:13\",\r\n    \"total\": \"2.65\",\r\n    \"items\": [\r\n        {\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"},\r\n        {\"shortDescription\": \"Dasani\", \"price\": \"1.40\"}\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/receipts/process",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"receipts",
+						"process"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetPoints",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/receipts/:id/points",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"receipts",
+						":id",
+						"points"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "73a52d70-c27f-4769-ba36-83a3e439ad86"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "id"
+		}
+	]
+}
