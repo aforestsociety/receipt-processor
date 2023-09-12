@@ -56,23 +56,14 @@ GET  -> http://localhost:8080/receipts/{id}/points
 
   - If using Postman, import the Receipt-Processor Endpoints collection from the repo into Postman. Try sending the POST Request to add a receipt. Then you can retrieve the points via the GET request.
 
-  - If using cURL, send a request in the following format:
+  - If using cURL, send a request in the following format (formatted for Windows cmd.exe):
 
     *POST*
     ```bash
-    curl -X POST -H "Content-Type: application/json" -d '{ 
-      "retailer": "Sample Store", 
-      "purchaseDate": "2022-09-09", 
-      "purchaseTime": "14:30", 
-      "items": [
-        {"shortDescription": "Item 1", "price": "10.00"}, 
-        {"shortDescription": "Item 2", "price": "5.00"}
-        ],
-        "total": "15.00"
-        }' http://localhost:8080/receipts/process
+    curl -L "http://localhost:8080/receipts/process" -H "Content-Type: application/json" -d "{\"retailer\": \"Walgreens\",\"purchaseDate\": \"2022-01-02\",\"purchaseTime\": \"08:13\",\"total\": \"2.65\",\"items\": [{\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"},{\"shortDescription\": \"Dasani\", \"price\": \"1.40\"}]}"
     ```
 
-    *GET*
+    *GET* 
     ```bash
     curl http://localhost:8080/receipts/{id}/points
     ```
